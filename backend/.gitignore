@@ -1,0 +1,13 @@
+.dotnet/
+.dotnet-home/
+.nuget/
+.env
+.env.*
+!.env.example
+**/bin/
+**/obj/
+data/library.json
+data/user.json
+data/user.json.*.tmp
+data/userSession.json
+data/userSession.json.*.tmp
