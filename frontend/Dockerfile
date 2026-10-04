@@ -7,6 +7,8 @@ RUN npm ci
 
 FROM base AS builder
 WORKDIR /app
+ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:5088
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
