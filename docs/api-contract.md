@@ -17,7 +17,7 @@ Front-end ต้องเรียก API ผ่าน HTTP เท่านั�
 
 ## 2. Authentication
 
-ทุก endpoint ของ Books และ Categories รวมถึง `GET /api/auth/validate-token` ต้องส่ง JWT:
+ทุก endpoint ของ Dashboard, Books และ Categories รวมถึง `GET /api/auth/validate-token` ต้องส่ง JWT:
 
 ```http
 Authorization: Bearer <token>
@@ -110,6 +110,7 @@ API ใช้ response envelope เดียวกัน:
 | Health | GET | `/health/ready` | ไม่ใช้ | 200 หรือ 503 |
 | Auth | POST | `/api/auth/login` | ไม่ใช้ | 200 |
 | Auth | GET | `/api/auth/validate-token` | Bearer | 200 |
+| Dashboard | GET | `/api/dashboard` | Bearer | 200 |
 | Categories | GET | `/api/categories` | Bearer | 200 |
 | Categories | GET | `/api/categories/{id}` | Bearer | 200 |
 | Categories | POST | `/api/categories` | Bearer | 201 |
@@ -227,7 +228,60 @@ Response `200`:
 }
 ```
 
-## 7. Category models
+## 7. Dashboard endpoint
+
+### GET `/api/dashboard`
+
+สรุปข้อมูลจาก snapshot เดียวกันของ Books และ Categories โดยไม่มี query parameter:
+
+- `totalBooks` คือจำนวน Book records
+- `totalBookCopies` คือผลรวม `totalCopies` ของ Book records ทั้งหมด
+- `totalCategories` คือจำนวน Category records ทั้งหมด รวม Category ที่ยังไม่มี Book
+- `recentBooks` มีไม่เกิน 5 รายการ เรียง `createdAt` จากใหม่ไปเก่า แล้ว `id` จากน้อยไปมาก
+
+```http
+GET /api/dashboard
+Authorization: Bearer <token>
+Accept: application/json
+```
+
+Response `200`:
+
+```json
+{
+  "success": true,
+  "message": "Dashboard retrieved successfully.",
+  "data": {
+    "summary": {
+      "totalBooks": 1,
+      "totalBookCopies": 3,
+      "totalCategories": 3
+    },
+    "recentBooks": [
+      {
+        "id": "33333333-3333-3333-3333-333333333333",
+        "bookCode": "BK-001",
+        "title": "Clean Code",
+        "author": "Robert C. Martin",
+        "categoryId": "10000000-0000-0000-0000-000000000003",
+        "categoryName": "Technology",
+        "totalCopies": 3,
+        "createdAt": "2026-10-04T11:30:00+00:00"
+      }
+    ]
+  },
+  "meta": null
+}
+```
+
+เมื่อไม่มีข้อมูล Books ระบบคืนยอด Book และจำนวน copies เป็น `0` พร้อม `recentBooks: []` โดยยังนับ Categories แยกต่างหาก
+
+สถานะอื่น:
+
+- `401 Unauthorized`
+- `500 Internal Server Error`: persisted data อ่านไม่ได้หรือไม่ถูกต้อง
+
+## 8. Category models
 
 ### CategoryResponse
 
@@ -240,7 +294,7 @@ Response `200`:
 }
 ```
 
-## 8. Category endpoints
+## 9. Category endpoints
 
 ### GET `/api/categories`
 
@@ -358,7 +412,7 @@ Response `204`: ไม่มี body
 
 ระบบไม่ cascade-delete Book และไม่ลบ `categoryId` ออกจาก Book
 
-## 9. Book models
+## 10. Book models
 
 ### BookResponse
 
@@ -386,7 +440,7 @@ totalCopies - จำนวน loans ที่ returnedAt เป็น null
 
 Front-end ห้ามส่ง `id`, timestamps หรือ `availableCopies` ใน create/update payload
 
-## 10. Book endpoints
+## 11. Book endpoints
 
 ### GET `/api/books`
 
@@ -521,7 +575,7 @@ Response `204`: ไม่มี body
 - `404 Not Found`: ไม่พบ Book
 - `409 Conflict`: มี Loan history อ้างถึง Book แม้ loan นั้นคืนแล้ว
 
-## 11. HTTP statuses ส่วนกลาง
+## 12. HTTP statuses ส่วนกลาง
 
 | Status | ความหมาย |
 | --- | --- |
@@ -537,7 +591,7 @@ Response `204`: ไม่มี body
 | `500 Internal Server Error` | unexpected server error |
 | `503 Service Unavailable` | readiness check ไม่ผ่าน |
 
-## 12. แนวทางใช้งานจาก Front-end
+## 13. แนวทางใช้งานจาก Front-end
 
 1. เรียก `POST /api/auth/login` แล้วเก็บ `data.token`
 2. ส่ง `Authorization: Bearer <token>` ใน protected requests
@@ -584,7 +638,7 @@ async function apiFetch<T>(path: string, token: string, init?: RequestInit) {
 }
 ```
 
-## 13. ไฟล์ที่เกี่ยวข้อง
+## 14. ไฟล์ที่เกี่ยวข้อง
 
 - Postman collection: `backend/LibraryManagement.Api.postman_collection.json`
 - Manual HTTP requests: `backend/src/LibraryManagement.Api/LibraryManagement.Api.http`

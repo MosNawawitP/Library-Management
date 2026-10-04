@@ -198,6 +198,35 @@
       ]
     },
     {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "dashboard"
+              ]
+            },
+            "description": "Returns summary counts and up to five recent books from a consistent Books and Categories snapshot."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Categories",
       "item": [
         {

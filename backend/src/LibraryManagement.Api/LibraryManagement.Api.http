@@ -27,6 +27,12 @@ Accept: application/json
 
 ###
 
+GET {{LibraryManagement.Api_HostAddress}}/api/dashboard
+Authorization: Bearer {{login.response.body.$.data.token}}
+Accept: application/json
+
+###
+
 GET {{LibraryManagement.Api_HostAddress}}/api/categories
 Authorization: Bearer {{login.response.body.$.data.token}}
 Accept: application/json

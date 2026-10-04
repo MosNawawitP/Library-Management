@@ -8,6 +8,7 @@ using LibraryManagement.Api.Data.Library;
 using LibraryManagement.Api.Features.Auth;
 using LibraryManagement.Api.Features.Books;
 using LibraryManagement.Api.Features.Categories;
+using LibraryManagement.Api.Features.Dashboard;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
@@ -72,6 +73,7 @@ builder.Services.AddSingleton<IPasswordHasher<AuthUser>, PasswordHasher<AuthUser
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<BookService>();
 builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<DashboardService>();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -143,5 +145,6 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 app.MapAuthEndpoints();
 app.MapBookEndpoints();
 app.MapCategoryEndpoints();
+app.MapDashboardEndpoints();
 
 app.Run();
