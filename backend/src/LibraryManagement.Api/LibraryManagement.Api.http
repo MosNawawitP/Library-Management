@@ -1,0 +1,120 @@
+@LibraryManagement.Api_HostAddress = http://localhost:5088
+
+GET {{LibraryManagement.Api_HostAddress}}/health/live
+Accept: application/json
+
+###
+
+GET {{LibraryManagement.Api_HostAddress}}/health/ready
+Accept: application/json
+
+###
+
+# @name login
+POST {{LibraryManagement.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "Library@123"
+}
+
+###
+
+GET {{LibraryManagement.Api_HostAddress}}/api/auth/validate-token
+Authorization: Bearer {{login.response.body.$.data.token}}
+Accept: application/json
+
+###
+
+GET {{LibraryManagement.Api_HostAddress}}/api/categories
+Authorization: Bearer {{login.response.body.$.data.token}}
+Accept: application/json
+
+###
+
+GET {{LibraryManagement.Api_HostAddress}}/api/categories?search=science&page=1&pageSize=10
+Authorization: Bearer {{login.response.body.$.data.token}}
+Accept: application/json
+
+###
+
+# @name createCategory
+POST {{LibraryManagement.Api_HostAddress}}/api/categories
+Authorization: Bearer {{login.response.body.$.data.token}}
+Content-Type: application/json
+
+{
+  "name": "Science"
+}
+
+###
+
+GET {{LibraryManagement.Api_HostAddress}}/api/categories/{{createCategory.response.body.$.data.id}}
+Authorization: Bearer {{login.response.body.$.data.token}}
+Accept: application/json
+
+###
+
+PUT {{LibraryManagement.Api_HostAddress}}/api/categories/{{createCategory.response.body.$.data.id}}
+Authorization: Bearer {{login.response.body.$.data.token}}
+Content-Type: application/json
+
+{
+  "name": "Natural Science"
+}
+
+###
+
+DELETE {{LibraryManagement.Api_HostAddress}}/api/categories/{{createCategory.response.body.$.data.id}}
+Authorization: Bearer {{login.response.body.$.data.token}}
+
+###
+
+GET {{LibraryManagement.Api_HostAddress}}/api/books?search=clean&categoryId=10000000-0000-0000-0000-000000000003&page=1&pageSize=10
+Authorization: Bearer {{login.response.body.$.data.token}}
+Accept: application/json
+
+###
+
+# @name createBook
+POST {{LibraryManagement.Api_HostAddress}}/api/books
+Authorization: Bearer {{login.response.body.$.data.token}}
+Content-Type: application/json
+
+{
+  "bookCode": "BK-001",
+  "title": "Clean Code",
+  "author": "Robert C. Martin",
+  "isbn": "9780132350884",
+  "categoryId": "10000000-0000-0000-0000-000000000003",
+  "totalCopies": 3
+}
+
+###
+
+GET {{LibraryManagement.Api_HostAddress}}/api/books/{{createBook.response.body.$.data.id}}
+Authorization: Bearer {{login.response.body.$.data.token}}
+Accept: application/json
+
+###
+
+PUT {{LibraryManagement.Api_HostAddress}}/api/books/{{createBook.response.body.$.data.id}}
+Authorization: Bearer {{login.response.body.$.data.token}}
+Content-Type: application/json
+
+{
+  "bookCode": "BK-001",
+  "title": "Clean Code, Updated Edition",
+  "author": "Robert C. Martin",
+  "isbn": "9780132350884",
+  "categoryId": "10000000-0000-0000-0000-000000000003",
+  "totalCopies": 4
+}
+
+###
+
+DELETE {{LibraryManagement.Api_HostAddress}}/api/books/{{createBook.response.body.$.data.id}}
+Authorization: Bearer {{login.response.body.$.data.token}}
+
+###
