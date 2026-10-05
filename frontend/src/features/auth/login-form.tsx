@@ -1,23 +1,95 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import {
   ArrowRight,
   BookOpen,
+  CircleAlert,
   Eye,
   EyeOff,
   LayoutGrid,
+  LoaderCircle,
   LockKeyhole,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
+
+interface LoginFieldErrors {
+  username?: string;
+  password?: string;
+}
+
+const LOGIN_ERROR_MESSAGES: Record<string, string> = {
+  invalid_credentials: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง",
+  locked: "บัญชีถูกระงับชั่วคราวจากการเข้าสู่ระบบที่ไม่สำเร็จ กรุณารอแล้วลองอีกครั้ง",
+  invalid_request: "ข้อมูลเข้าสู่ระบบไม่ถูกต้อง กรุณาตรวจสอบแล้วลองอีกครั้ง",
+  service_unavailable: "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนได้ กรุณาลองใหม่ภายหลัง",
+};
 
 export function LoginForm() {
+  const router = useRouter();
+  const formErrorRef = useRef<HTMLDivElement>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<LoginFieldErrors>({});
+  const [formError, setFormError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    if (formError) {
+      formErrorRef.current?.focus();
+    }
+  }, [formError]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const username = String(formData.get("username") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+    const validationErrors = validateLogin(username, password);
+
+    setFieldErrors(validationErrors);
+    setFormError("");
+
+    if (validationErrors.username || validationErrors.password) {
+      const firstInvalidField = validationErrors.username ? "username" : "password";
+      const invalidElement = form.elements.namedItem(firstInvalidField);
+      if (invalidElement instanceof HTMLElement) {
+        invalidElement.focus();
+      }
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await signIn("credentials", {
+        username,
+        password,
+        redirect: false,
+        redirectTo: "/dashboard",
+      });
+
+      if (!result?.error && result?.url) {
+        router.replace(result.url);
+        router.refresh();
+        return;
+      }
+
+      setFormError(getLoginErrorMessage(result?.code));
+    } catch {
+      setFormError(LOGIN_ERROR_MESSAGES.service_unavailable);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -134,10 +206,22 @@ export function LoginForm() {
                     name="username"
                     type="text"
                     autoComplete="username"
+                    required
+                    maxLength={100}
+                    aria-invalid={Boolean(fieldErrors.username)}
+                    aria-describedby={fieldErrors.username ? "username-error" : undefined}
+                    onChange={() =>
+                      setFieldErrors((current) => ({ ...current, username: undefined }))
+                    }
                     placeholder="กรอกชื่อผู้ใช้"
                     className="h-13 w-full rounded-xl border border-slate-200 bg-slate-50/70 pr-4 pl-12 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                   />
                 </div>
+                {fieldErrors.username ? (
+                  <p id="username-error" className="mt-2 text-xs font-medium text-red-600">
+                    {fieldErrors.username}
+                  </p>
+                ) : null}
               </div>
 
               <div>
@@ -156,6 +240,13 @@ export function LoginForm() {
                     name="password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
+                    required
+                    maxLength={1024}
+                    aria-invalid={Boolean(fieldErrors.password)}
+                    aria-describedby={fieldErrors.password ? "password-error" : undefined}
+                    onChange={() =>
+                      setFieldErrors((current) => ({ ...current, password: undefined }))
+                    }
                     placeholder="กรอกรหัสผ่าน"
                     className="h-13 w-full rounded-xl border border-slate-200 bg-slate-50/70 pr-12 pl-12 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                   />
@@ -173,32 +264,53 @@ export function LoginForm() {
                     )}
                   </button>
                 </div>
+                {fieldErrors.password ? (
+                  <p id="password-error" className="mt-2 text-xs font-medium text-red-600">
+                    {fieldErrors.password}
+                  </p>
+                ) : null}
               </div>
 
-              <div className="flex items-center justify-between gap-4 text-sm">
-                <label className="flex cursor-pointer items-center gap-2.5 text-slate-600">
-                  <input
-                    type="checkbox"
-                    name="rememberMe"
-                    className="h-4 w-4 rounded border-slate-300 accent-blue-600"
+              <p className="text-right text-xs leading-5 text-slate-400">
+                ติดต่อผู้ดูแลระบบเมื่อเข้าใช้งานไม่ได้
+              </p>
+
+              {formError ? (
+                <div
+                  ref={formErrorRef}
+                  role="alert"
+                  tabIndex={-1}
+                  className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-5 text-red-700 outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                >
+                  <CircleAlert
+                    aria-hidden="true"
+                    className="mt-0.5 h-4 w-4 shrink-0"
+                    strokeWidth={2}
                   />
-                  จดจำฉันในอุปกรณ์นี้
-                </label>
-                <span className="text-right text-xs leading-5 text-slate-400">
-                  ติดต่อผู้ดูแลระบบเมื่อเข้าใช้งานไม่ได้
-                </span>
-              </div>
+                  <span>{formError}</span>
+                </div>
+              ) : null}
 
               <button
                 type="submit"
-                className="group flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-bold text-white shadow-[0_12px_26px_rgba(5,112,207,0.28)] transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-[0_16px_30px_rgba(5,112,207,0.34)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:translate-y-0"
+                disabled={isSubmitting}
+                aria-busy={isSubmitting}
+                className="group flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-bold text-white shadow-[0_12px_26px_rgba(5,112,207,0.28)] transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-[0_16px_30px_rgba(5,112,207,0.34)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-65 disabled:hover:translate-y-0 disabled:hover:bg-blue-600"
               >
-                เข้าสู่ระบบ
-                <ArrowRight
-                  aria-hidden="true"
-                  className="h-4 w-4 transition-transform group-hover:translate-x-1"
-                  strokeWidth={2}
-                />
+                {isSubmitting ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+                {isSubmitting ? (
+                  <LoaderCircle
+                    aria-hidden="true"
+                    className="h-4 w-4 animate-spin"
+                    strokeWidth={2}
+                  />
+                ) : (
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="h-4 w-4 transition-transform group-hover:translate-x-1"
+                    strokeWidth={2}
+                  />
+                )}
               </button>
             </form>
 
@@ -216,4 +328,30 @@ export function LoginForm() {
       </section>
     </main>
   );
+}
+
+function validateLogin(username: string, password: string): LoginFieldErrors {
+  const errors: LoginFieldErrors = {};
+
+  if (!username) {
+    errors.username = "กรุณากรอกชื่อผู้ใช้";
+  } else if (username.length > 100) {
+    errors.username = "ชื่อผู้ใช้ต้องไม่เกิน 100 ตัวอักษร";
+  }
+
+  if (!password) {
+    errors.password = "กรุณากรอกรหัสผ่าน";
+  } else if (password.length > 1024) {
+    errors.password = "รหัสผ่านต้องไม่เกิน 1024 ตัวอักษร";
+  }
+
+  return errors;
+}
+
+function getLoginErrorMessage(code?: string): string {
+  if (code && Object.hasOwn(LOGIN_ERROR_MESSAGES, code)) {
+    return LOGIN_ERROR_MESSAGES[code];
+  }
+
+  return "เกิดข้อผิดพลาดระหว่างเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง";
 }

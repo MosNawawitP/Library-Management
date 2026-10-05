@@ -2,6 +2,7 @@
   "name": "library-management-frontend",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,11 +10,13 @@
     "build:uat": "node scripts/build-environment.mjs uat",
     "build:prod": "node scripts/build-environment.mjs production",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --experimental-strip-types --test tests/**/*.test.ts"
   },
   "dependencies": {
     "lucide-react": "^1.52.0",
     "next": "16.3.8",
+    "next-auth": "5.0.0-beta.32",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
