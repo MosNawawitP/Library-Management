@@ -1,9 +1,22 @@
-import { BookForm } from "@/features/books/book-form";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { BookList } from "@/features/books/book-list";
 
-export default function BookDetailsPage() {
+export default async function BookDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const session = await auth();
+  if (!session?.accessToken) redirect("/login");
+  const { id } = await params;
   return (
-    <main>
-      <BookForm />
+    <main className="mx-auto max-w-[1600px]">
+      <BookList
+        accessToken={session.accessToken}
+        initialQuery={{ page: 1, pageSize: 10, search: "", categoryId: "" }}
+        initialBookId={id}
+      />
     </main>
   );
 }
