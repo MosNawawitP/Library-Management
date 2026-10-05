@@ -2,8 +2,8 @@ FROM node:22-alpine AS base
 
 FROM base AS dependencies
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json ./
+RUN npm install
 
 FROM base AS builder
 WORKDIR /app
