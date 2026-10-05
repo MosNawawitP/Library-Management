@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "categories": [
+    {
+      "id": "10000000-0000-0000-0000-000000000001",
+      "name": "Fiction",
+      "createdAt": "2026-10-04T00:00:00+00:00",
+      "updatedAt": null
+    },
+    {
+      "id": "10000000-0000-0000-0000-000000000002",
+      "name": "Non-fiction",
+      "createdAt": "2026-10-04T00:00:00+00:00",
+      "updatedAt": null
+    },
+    {
+      "id": "10000000-0000-0000-0000-000000000003",
+      "name": "Technology",
+      "createdAt": "2026-10-04T00:00:00+00:00",
+      "updatedAt": null
+    }
+  ],
+  "books": [],
+  "bookCopies": [],
+  "members": [],
+  "loans": [],
+  "reservations": []
+}

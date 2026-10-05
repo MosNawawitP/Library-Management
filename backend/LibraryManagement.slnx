@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LibraryManagement.Api/LibraryManagement.Api.csproj" />
+  </Folder>
+</Solution>

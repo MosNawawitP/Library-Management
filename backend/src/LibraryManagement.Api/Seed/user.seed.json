@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "users": [
+    {
+      "userId": "11111111-1111-1111-1111-111111111111",
+      "username": "admin",
+      "normalizedUsername": "ADMIN",
+      "passwordHash": "AQAAAAIAAYagAAAAEJqcs4FvOnxrfY6foLHC0+SYLb5B057oIH+H+CeP+9sXhZyyILJ1wC0LnV+3O8yM/A==",
+      "isActive": true,
+      "failedLoginAttempts": 0,
+      "lockedUntilUtc": null
+    }
+  ]
+}
